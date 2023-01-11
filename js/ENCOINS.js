@@ -71,16 +71,19 @@ let walletCollateral      = metaWallet("getCollateral");
 let walletUnusedAddresses = metaWallet("getUnusedAddresses");
 let walletRewardAddresses = metaWallet("getRewardAddresses");
 
-function walletUtxos(walletName, amount, paginate) {
-  return walletAPI(walletName).then((api) => { return api.getUtxos(amount, paginate) });
+async function walletUtxos(walletName, amount, paginate) {
+  const api = await walletAPI(walletName);
+  return api.getUtxos(amount, paginate);
 }
 
-function walletSignTx(walletName, tx, partialSign) {
-  return walletAPI(walletName).then((api) => { return api.signTx(tx, partialSign) });
+async function walletSignTx(walletName, tx, partialSign) {
+  const api = await walletAPI(walletName);
+  return api.signTx(tx, partialSign);
 }
 
-function walletSubmitTx(walletName, tx) {
-  return walletAPI(walletName).then((api) => { return api.signTx(tx) });
+async function walletSubmitTx(walletName, tx) {
+  const api = await walletAPI(walletName);
+  return api.signTx(tx);
 }
 
 function walletEnable(walletName, resId) {
@@ -103,6 +106,7 @@ function metaWalletView(method) {
 async function walletLoad(walletName, networkIdElement, balanceElement, changeAddressElement, changeAddressBech32Element,
   pubKeyHashElement, stakeKeyHashElement, collateralElement, utxosElement, unusedAddressesElement, rewardAddressesElement)
 {
+  console.log("begin walletLoad");
   await loader.load();
   const CardanoWasm = loader.Cardano;
   const api         = await walletAPI(walletName);
@@ -127,13 +131,19 @@ async function walletLoad(walletName, networkIdElement, balanceElement, changeAd
   setInputValue(collateralElement, collateral);
 
   const utxos               = await api.getUtxos();
-  setInputValue(utxosElement, utxos);
+  const utxosJSON           = [];
+  for (i = 0; i<utxos.length; i++)
+  {
+    utxosJSON.push(CardanoWasm.TransactionUnspentOutput.from_bytes(fromHexString(utxos[i])).to_json());
+  }
+  setInputValue(utxosElement, "[" + utxosJSON.join(', ') + "]");
 
   const unusedAddresses     = await api.getUnusedAddresses();
   setInputValue(unusedAddressesElement, unusedAddresses);
 
   const rewardAddresses     = await api.getRewardAddresses();
   setInputValue(rewardAddressesElement, rewardAddresses);
+  console.log("end walletLoad");
 }
 
 async function encoinsTx(walletName, partialTx, red, resId) {
@@ -183,6 +193,7 @@ async function sha2_256(str, resId) {
 // signs a hex string 'msg' with Ed25519 private key 'prvKey'
 async function ed25519Sign(prvKey, msg, resId) {
   const sig = await window.nobleEd25519.sign(msg, prvKey);
-  console.log(sig);
-  setInputValue(resId, sig);
+  console.log("we are signing...");
+  console.log(toHexString(sig));
+  setInputValue(resId, toHexString(sig));
 }
