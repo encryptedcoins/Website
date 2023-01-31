@@ -123,10 +123,29 @@ async function walletSignTx(walletName, partialTxHex, walletSignatureElement)
   console.log(partialTxHex);
 
   const walletSignatureWitnessSetBytes = await api.signTx(partialTxHex, true);
-  const walletSignature = CardanoWasm.TransactionWitnessSet.from_bytes(fromHexString(walletSignatureWitnessSetBytes)).vkeys().get(0).to_json();
+  const walletSignatures = CardanoWasm.TransactionWitnessSet.from_bytes(fromHexString(walletSignatureWitnessSetBytes)).vkeys();
+  // const walletSignatureHex = w
 
-  setInputValue(walletSignatureElement, walletSignature);
-  console.log(walletSignature);
+  // console.log(CardanoWasm.TransactionWitnessSet.from_bytes(fromHexString(walletSignatureWitnessSetBytes)).vkeys().get(0).vkey());
+
+  // const txUnsigned = CardanoWasm.Transaction.from_bytes(fromHexString(partialTxHex));
+  // const txBody = txUnsigned.body();
+  // const txWitnessSet = txUnsigned.witness_set();
+  // txWitnessSet.set_vkeys(walletSignature.vkeys());
+  // const txSigned = CardanoWasm.Transaction.new(txBody, txWitnessSet);
+  // const txId = await api.submitTx(toHexString(txSigned.to_bytes()));
+  // console.log(txId);
+
+  console.log(CardanoWasm.TransactionWitnessSet.from_bytes(fromHexString(walletSignatureWitnessSetBytes)).vkeys().len());
+  const resultJSON = [];
+  for (i=0; i<walletSignatures.len(); i++)
+  {
+    resultJSON.push('{ \"vkey\": \"' + walletSignatures.get(i).vkey().public_key().to_hex() + 
+      '\", \"signature\": \"' + walletSignatures.get(i).signature().to_hex() + '\" }');
+  }
+
+  setInputValue(walletSignatureElement, "[" + resultJSON.join(', ') + "]");
+  console.log("[" + resultJSON.join(', ') + "]");
 };
 
 async function walletSubmitTx(walletName, txHex)
