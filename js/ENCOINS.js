@@ -54,45 +54,59 @@ async function walletAPI(walletName) {
   switch (walletName) {
     case "nami":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.nami !== 'undefined'))
+      {
+        console.log("Wallet: Nami");
         return window.cardano.nami.enable();
+      }
       else
         return new Promise(() => { throw new Error("window.cardano or window.cardano.nami is not found"); });
     case "eternl":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.eternl !== 'undefined'))
+      {
+        console.log("Wallet: Eternl");
         return window.cardano.eternl.enable();
+      }
       else
         return new Promise(() => { throw new Error("window.cardano or window.cardano.eternl is not found"); });
+    case "flint":
+      if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.flint !== 'undefined'))
+      {
+        console.log("Wallet: Flint");
+        return window.cardano.flint.enable();
+      }
+      else
+        return new Promise(() => { throw new Error("window.cardano or window.cardano.flint is not found"); });
     default:
-      return new Promise(() => { throw new Error("Wallet's not identified"); });
+      return new Promise(() => { console.log("Wallet: None"); });
   }
 }
 
-async function walletLoad(walletName, networkIdElement, balanceElement, changeAddressElement, changeAddressBech32Element,
-  pubKeyHashElement, stakeKeyHashElement, collateralElement, utxosElement, unusedAddressesElement, rewardAddressesElement)
+async function walletLoad(networkIdElement, balanceElement, changeAddressElement, changeAddressBech32Element,
+  pubKeyHashElement, stakeKeyHashElement, collateralElement, utxosElement, unusedAddressesElement, rewardAddressesElement, walletName)
 {
   console.log("begin walletLoad");
   await loader.load();
   const CardanoWasm = loader.Cardano;
   const api         = await walletAPI(walletName);
 
-  const networkId           = await api.getNetworkId();
-  setInputValue(networkIdElement, networkId);
+  // const networkId           = await api.getNetworkId();
+  // setInputValue(networkIdElement, networkId);
 
-  const balance             = await api.getBalance();
-  setInputValue(balanceElement, balance);
+  // const balance             = await api.getBalance();
+  // setInputValue(balanceElement, balance);
 
   const changeAddress       = await api.getChangeAddress();
   const changeAddressBech32 = CardanoWasm.Address.from_bytes(fromHexString(changeAddress)).to_bech32();
   const baseAddress         = CardanoWasm.BaseAddress.from_address(CardanoWasm.Address.from_bech32(changeAddressBech32));
   const pubKeyHash          = toHexString(baseAddress.payment_cred().to_keyhash().to_bytes());
   const stakeKeyHash        = toHexString(baseAddress.stake_cred().to_keyhash().to_bytes());
-  setInputValue(changeAddressElement, changeAddress);
-  setInputValue(changeAddressBech32Element, changeAddressBech32);
+  // setInputValue(changeAddressElement, changeAddress);
+  // setInputValue(changeAddressBech32Element, changeAddressBech32);
   setInputValue(pubKeyHashElement, pubKeyHash);
   setInputValue(stakeKeyHashElement, stakeKeyHash);
   
-  const collateral          = await api.experimental.getCollateral();
-  setInputValue(collateralElement, collateral);
+  // const collateral          = await api.experimental.getCollateral();
+  // setInputValue(collateralElement, collateral);
 
   const utxos               = await api.getUtxos();
   const utxosJSON           = [];
@@ -102,11 +116,11 @@ async function walletLoad(walletName, networkIdElement, balanceElement, changeAd
   }
   setInputValue(utxosElement, "[" + utxosJSON.join(', ') + "]");
 
-  const unusedAddresses     = await api.getUnusedAddresses();
-  setInputValue(unusedAddressesElement, unusedAddresses);
+  // const unusedAddresses     = await api.getUnusedAddresses();
+  // setInputValue(unusedAddressesElement, unusedAddresses);
 
-  const rewardAddresses     = await api.getRewardAddresses();
-  setInputValue(rewardAddressesElement, rewardAddresses);
+  // const rewardAddresses     = await api.getRewardAddresses();
+  // setInputValue(rewardAddressesElement, rewardAddresses);
   console.log("end walletLoad");
 }
 
@@ -124,17 +138,6 @@ async function walletSignTx(walletName, partialTxHex, walletSignatureElement)
 
   const walletSignatureWitnessSetBytes = await api.signTx(partialTxHex, true);
   const walletSignatures = CardanoWasm.TransactionWitnessSet.from_bytes(fromHexString(walletSignatureWitnessSetBytes)).vkeys();
-  // const walletSignatureHex = w
-
-  // console.log(CardanoWasm.TransactionWitnessSet.from_bytes(fromHexString(walletSignatureWitnessSetBytes)).vkeys().get(0).vkey());
-
-  // const txUnsigned = CardanoWasm.Transaction.from_bytes(fromHexString(partialTxHex));
-  // const txBody = txUnsigned.body();
-  // const txWitnessSet = txUnsigned.witness_set();
-  // txWitnessSet.set_vkeys(walletSignature.vkeys());
-  // const txSigned = CardanoWasm.Transaction.new(txBody, txWitnessSet);
-  // const txId = await api.submitTx(toHexString(txSigned.to_bytes()));
-  // console.log(txId);
 
   console.log(CardanoWasm.TransactionWitnessSet.from_bytes(fromHexString(walletSignatureWitnessSetBytes)).vkeys().len());
   const resultJSON = [];
