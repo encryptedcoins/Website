@@ -114,6 +114,14 @@ async function walletAPI(walletName) {
       }
       else
         return new Promise(() => { throw new Error("window.cardano or window.cardano.begin is not found"); });
+    case "begin-nightly":
+      if ((typeof window.cardano !== 'undefined') || (typeof window.cardano["begin-nightly"] !== 'undefined'))
+      {
+        console.log("Wallet: Begin Nightly");
+        return window.cardano["begin-nightly"].enable();
+      }
+      else
+        return new Promise(() => { throw new Error("window.cardano or window.cardano.begin-nightly is not found"); });
     case "typhon":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.typhon !== 'undefined'))
       {
@@ -131,17 +139,22 @@ async function walletAPI(walletName) {
       else
         return new Promise(() => { throw new Error("window.cardano or window.cardano.lace is not found"); });
     default:
-      return new Promise(() => { setWalletNone(); console.log("Wallet: None"); });
+      return new Promise(() => { setWalletNone(); console.log(walletName); console.log("Wallet: None"); });
   }
 }
 
 async function walletLoad(walletName)
 {
+  console.log(window.fingerprintFromAssetName('2cdb619dc035a9981de8bc304a79bea37179bcc96a7b9eb2fa5651f6', '4c2b'));
   console.log("begin walletLoad");
   await loader.load();
   const CardanoWasm = loader.Cardano;
   try {
+    // console.log(window.begin);
+    // console.log(window.cardano);
+    // console.log(window.cardano.begin);
     const api = await walletAPI(walletName);
+    console.log(api);
     
     setInputValue("walletNameElement", walletName);
 
@@ -277,3 +290,13 @@ async function ed25519Sign(prvKey, msg, resId)
   const sig = await window.nobleEd25519.sign(msg, prvKey);
   setInputValue(resId, toHexString(sig));
 }
+
+// function fingerprintFromAssetName(currencySymbol, tokenName)
+// {
+//   const AssetFingerprint = require('@emurgo/cip14-js');
+//   const assetFingerprint = AssetFingerprint.fromParts(
+//     Buffer.from(currencySymbol, 'hex'),
+//     Buffer.from(tokenName, 'hex'),
+//   );
+//   return assetFingerprint.fingerprint();
+// }
