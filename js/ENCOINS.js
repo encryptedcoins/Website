@@ -158,8 +158,9 @@ async function walletLoad(walletName)
     
     setInputValue("walletNameElement", walletName);
 
-    // const networkId           = await api.getNetworkId();
-    // setInputValue(networkIdElement, networkId);
+    const networkId           = await api.getNetworkId();
+    console.log(networkId);
+    setInputValue("networkIdElement", networkId);
 
     // const balance             = await api.getBalance();
     // setInputValue(balanceElement, balance);
