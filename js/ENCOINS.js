@@ -203,8 +203,10 @@ async function walletLoad(walletName)
     // setInputValue(rewardAddressesElement, rewardAddresses);
     console.log("end walletLoad");
   } catch (e) {
+    console.log(e.message);
     setWalletNone();
-    setInputValue("walletErrorElement", "No access to the wallet.");
+    if (e.message.includes("no account set")) { setInputValue("walletErrorElement", "No account set in Eternl wallet."); }
+    else { setInputValue("walletErrorElement", "No access to the wallet."); }
     return;
   }
 }
