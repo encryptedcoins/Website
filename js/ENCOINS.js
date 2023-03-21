@@ -145,7 +145,6 @@ async function walletAPI(walletName) {
 
 async function walletLoad(walletName)
 {
-  console.log(window.fingerprintFromAssetName('2cdb619dc035a9981de8bc304a79bea37179bcc96a7b9eb2fa5651f6', '4c2b'));
   console.log("begin walletLoad");
   await loader.load();
   const CardanoWasm = loader.Cardano;
@@ -154,6 +153,7 @@ async function walletLoad(walletName)
     // console.log(window.cardano);
     // console.log(window.cardano.begin);
     const api = await walletAPI(walletName);
+    console.log("api:");
     console.log(api);
     
     setInputValue("walletNameElement", walletName);
