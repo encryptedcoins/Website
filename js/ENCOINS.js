@@ -15,10 +15,10 @@ function copyElemContent(elId) {
   }
 };
 
-function saveTextFile(txt) {
+function saveTextFile(fname, txt) {
   var element = document.createElement('a');
   element.setAttribute('href', 'data:application/octet-stream,' + encodeURIComponent(txt));
-  element.setAttribute('download', 'key.txt');
+  element.setAttribute('download', fname);
   element.style.display = 'none';
   document.body.appendChild(element);
   element.click();
@@ -43,13 +43,21 @@ function setInputValue(elId, val) {
   };
 };
 
-function saveJSON(key, val) {
-  localStorage.setItem(key, val);
+function saveJSON(key, val, encr, pass) {
+  var val1 = val;
+  if (encr) {
+    val1 = CryptoJS.AES.encrypt(val, pass).toString();
+  }
+  localStorage.setItem(key, val1);
 }
 
-function loadJSON(key, resId) {
+function loadJSON(key, resId, decr, pass) {
   const val = localStorage.getItem(key);
-  setInputValue(resId, val);
+  var res = val;
+  if (decr) {
+    res = CryptoJS.AES.decrypt(val, pass).toString(CryptoJS.enc.Utf8);
+  }
+  setInputValue(resId, res);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,7 +77,6 @@ async function walletAPI(walletName) {
     case "nami":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.nami !== 'undefined'))
       {
-        console.log("Wallet: Nami");
         return window.cardano.nami.enable();
       }
       else
@@ -77,7 +84,6 @@ async function walletAPI(walletName) {
     case "eternl":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.eternl !== 'undefined'))
       {
-        console.log("Wallet: Eternl");
         return window.cardano.eternl.enable();
       }
       else
@@ -85,7 +91,6 @@ async function walletAPI(walletName) {
     case "flint":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.flint !== 'undefined'))
       {
-        console.log("Wallet: Flint");
         return window.cardano.flint.enable();
       }
       else
@@ -93,7 +98,6 @@ async function walletAPI(walletName) {
     case "nufi":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.nufi !== 'undefined'))
       {
-        console.log("Wallet: NuFi");
         return window.cardano.nufi.enable();
       }
       else
@@ -101,7 +105,6 @@ async function walletAPI(walletName) {
     case "gerowallet":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.gerowallet !== 'undefined'))
       {
-        console.log("Wallet: Gero");
         return window.cardano.gerowallet.enable();
       }
       else
@@ -109,7 +112,6 @@ async function walletAPI(walletName) {
     case "begin":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.begin !== 'undefined'))
       {
-        console.log("Wallet: Begin");
         return window.cardano.begin.enable();
       }
       else
@@ -117,7 +119,6 @@ async function walletAPI(walletName) {
     case "begin-nightly":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano["begin-nightly"] !== 'undefined'))
       {
-        console.log("Wallet: Begin Nightly");
         return window.cardano["begin-nightly"].enable();
       }
       else
@@ -125,7 +126,6 @@ async function walletAPI(walletName) {
     case "typhon":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.typhon !== 'undefined'))
       {
-        console.log("Wallet: Typhon");
         return window.cardano.typhon.enable();
       }
       else
@@ -133,7 +133,6 @@ async function walletAPI(walletName) {
     case "lace":
       if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.lace !== 'undefined'))
       {
-        console.log("Wallet: Lace");
         return window.cardano.lace.enable();
       }
       else
@@ -149,17 +148,11 @@ async function walletLoad(walletName)
   await loader.load();
   const CardanoWasm = loader.Cardano;
   try {
-    // console.log(window.begin);
-    // console.log(window.cardano);
-    // console.log(window.cardano.begin);
     const api = await walletAPI(walletName);
-    console.log("api:");
-    console.log(api);
-    
+
     setInputValue("walletNameElement", walletName);
 
     const networkId           = await api.getNetworkId();
-    console.log(networkId);
     setInputValue("networkIdElement", networkId);
 
     // const balance             = await api.getBalance();
@@ -173,7 +166,10 @@ async function walletLoad(walletName)
     const stakeKeyHashCred = baseAddress.stake_cred();
     baseAddress.free();
     const pubKeyHash = pubKeyHashCred.to_keyhash();
-    const stakeKeyHash = stakeKeyHashCred.to_keyhash();
+    var stakeKeyHash = stakeKeyHashCred.to_keyhash();
+    if (stakeKeyHash === undefined) {
+      stakeKeyHash = "";
+    }
     pubKeyHashCred.free();
     stakeKeyHashCred.free();
     const pubKeyHashHex          = toHexString(pubKeyHash.to_bytes());
@@ -183,7 +179,7 @@ async function walletLoad(walletName)
     setInputValue("changeAddressBech32Element", changeAddressBech32);
     setInputValue("pubKeyHashElement", pubKeyHashHex);
     setInputValue("stakeKeyHashElement", stakeKeyHashHex);
-    
+
     // const collateral          = await api.experimental.getCollateral();
     // setInputValue(collateralElement, collateral);
 
@@ -237,7 +233,7 @@ async function walletSignTx(walletName, partialTxHex)
       const vkey = walletSignature.vkey();
       const public_key = vkey.public_key();
       const signature = walletSignature.signature();
-      resultJSON.push('{ \"vkey\": \"' + public_key.to_hex() + 
+      resultJSON.push('{ \"vkey\": \"' + public_key.to_hex() +
         '\", \"signature\": \"' + signature.to_hex() + '\" }');
       walletSignature.free();
       vkey.free();
@@ -282,24 +278,83 @@ async function sha2_256(str, resId)
 {
   const hashBuffer = await crypto.subtle.digest('SHA-256', new Uint8Array(fromHexString(str)));
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  console.log("inside sha");
   setInputValue(resId, toHexString(hashArray));
 }
 
-// NOTE: this is for testing purposes
-// signs a hex string 'msg' with Ed25519 private key 'prvKey'
 async function ed25519Sign(prvKey, msg, resId)
 {
   const sig = await window.nobleEd25519.sign(msg, prvKey);
   setInputValue(resId, toHexString(sig));
 }
 
-// function fingerprintFromAssetName(currencySymbol, tokenName)
-// {
-//   const AssetFingerprint = require('@emurgo/cip14-js');
-//   const assetFingerprint = AssetFingerprint.fromParts(
-//     Buffer.from(currencySymbol, 'hex'),
-//     Buffer.from(tokenName, 'hex'),
-//   );
-//   return assetFingerprint.fingerprint();
-// }
+function setElementStyle(elId, prop, val) {
+  var el = document.getElementById(elId);
+  if (el != null) {
+    el.style.setProperty(prop,val);
+  };
+};
+
+function pingServer(baseUrl) {
+  const request = new XMLHttpRequest();
+  request.open('GET', baseUrl + '/ping', false);  // `false` makes the request synchronous
+  try {
+    request.send(null);
+  } catch(e) {
+    console.log('ping ' + baseUrl + ' ====> ' + 'failed to send request');
+    return false;
+  }
+  console.log('ping ' + baseUrl + ' ====> ' + request.status);
+  return (request.status === 200);
+};
+
+function saveHashedTextToStorage(key, val) {
+  localStorage.setItem(key, CryptoJS.SHA3(val));
+}
+
+function loadHashedPassword(key) {
+  const pass = localStorage.getItem(key);
+  if (pass == null || pass == CryptoJS.SHA3("")) {
+    return "";
+  } else {
+    return pass;
+  }
+}
+
+function checkPassword(hash, raw) {
+  return (hash == CryptoJS.SHA3(raw));
+}
+
+async function addrLoad(addrInput)
+{
+  await loader.load();
+  const CardanoWasm = loader.Cardano;
+  try {
+    const addrBech32 = CardanoWasm.Address.from_bech32(addrInput);
+    const baseAddress = CardanoWasm.BaseAddress.from_address(addrBech32);
+    addrBech32.free();
+    const pubKeyHashCred = baseAddress.payment_cred();
+    const stakeKeyHashCred = baseAddress.stake_cred();
+    baseAddress.free();
+    var pubKeyHash = pubKeyHashCred.to_keyhash();
+    if (pubKeyHash === undefined) {
+      pubKeyHash = "";
+    }
+    var stakeKeyHash = stakeKeyHashCred.to_keyhash();
+    if (stakeKeyHash === undefined) {
+      stakeKeyHash = "";
+    }
+    pubKeyHashCred.free();
+    stakeKeyHashCred.free();
+    const pubKeyHashHex = toHexString(pubKeyHash.to_bytes());
+    const stakeKeyHashHex = toHexString(stakeKeyHash.to_bytes());
+    pubKeyHash.free();
+    stakeKeyHash.free();
+    setInputValue("addrPubKeyHashElement", pubKeyHashHex);
+    setInputValue("addrStakeKeyHashElement", stakeKeyHashHex);
+  } catch (e) {
+    console.log(e.message);
+    setInputValue("addrPubKeyHashElement", "");
+    setInputValue("addrStakeKeyHashElement", "");
+    return;
+  }
+}
