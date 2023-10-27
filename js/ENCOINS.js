@@ -49,6 +49,7 @@ function saveJSON(key, val, encr, pass) {
     val1 = CryptoJS.AES.encrypt(val, pass).toString();
   }
   localStorage.setItem(key, val1);
+  setInputValue(key, "");
 }
 
 function loadJSON(key, resId, decr, pass) {
@@ -137,6 +138,13 @@ async function walletAPI(walletName) {
       }
       else
         return new Promise(() => { throw new Error("window.cardano or window.cardano.lace is not found"); });
+    case "yoroi":
+      if ((typeof window.cardano !== 'undefined') || (typeof window.cardano.yoroi !== 'undefined'))
+      {
+        return window.cardano.yoroi.enable();
+      }
+      else
+        return new Promise(() => { throw new Error("window.cardano or window.cardano.yoroi is not found"); });
     default:
       return new Promise(() => { setWalletNone(); console.log(walletName); console.log("Wallet: None"); });
   }
@@ -198,6 +206,7 @@ async function walletLoad(walletName)
 
     // const rewardAddresses     = await api.getRewardAddresses();
     // setInputValue(rewardAddressesElement, rewardAddresses);
+    setInputValue("EndWalletLoad", "");
     console.log("end walletLoad");
   } catch (e) {
     console.log(e.message);
@@ -369,12 +378,12 @@ function toUTF8Array(str) {
       var charcode = str.charCodeAt(i);
       if (charcode < 0x80) utf8.push(charcode);
       else if (charcode < 0x800) {
-          utf8.push(0xc0 | (charcode >> 6), 
+          utf8.push(0xc0 | (charcode >> 6),
                     0x80 | (charcode & 0x3f));
       }
       else if (charcode < 0xd800 || charcode >= 0xe000) {
-          utf8.push(0xe0 | (charcode >> 12), 
-                    0x80 | ((charcode>>6) & 0x3f), 
+          utf8.push(0xe0 | (charcode >> 12),
+                    0x80 | ((charcode>>6) & 0x3f),
                     0x80 | (charcode & 0x3f));
       }
       // surrogate pair
@@ -385,25 +394,26 @@ function toUTF8Array(str) {
           // 20 bits of 0x0-0xFFFFF into two halves
           charcode = 0x10000 + (((charcode & 0x3ff)<<10)
                     | (str.charCodeAt(i) & 0x3ff));
-          utf8.push(0xf0 | (charcode >>18), 
-                    0x80 | ((charcode>>12) & 0x3f), 
-                    0x80 | ((charcode>>6) & 0x3f), 
+          utf8.push(0xf0 | (charcode >>18),
+                    0x80 | ((charcode>>12) & 0x3f),
+                    0x80 | ((charcode>>6) & 0x3f),
                     0x80 | (charcode & 0x3f));
       }
   }
   return utf8;
 }
 
-async function daoPollVoteTx(n, walletName, answer)
+async function daoPollVoteTx(n, apiKey, net, walletName, answer)
 {
+  setInputValue("VoteCreateNewTx", "");
   // loading CardanoWasm
   await loader.load();
   const CardanoWasm = loader.Cardano;
-
+  const blockfrostAddress = ["https://cardano-", net.toLowerCase(), ".blockfrost.io/api/v0"].join('');
   await lucidLoader.load();
   const lucid = await lucidLoader.Lucid.new(
-    new lucidLoader.Blockfrost("https://cardano-mainnet.blockfrost.io/api/v0", "mainnetK4sRBCTDwqzK1KRuFxnpuxPbKF4ZQrnl"),
-    "Mainnet",
+    new lucidLoader.Blockfrost(blockfrostAddress, apiKey),
+    net,
   )
 
   try {
@@ -415,7 +425,7 @@ async function daoPollVoteTx(n, walletName, answer)
     const baseAddress      = CardanoWasm.BaseAddress.from_address(changeAddress);
     const stakeKeyHashCred = baseAddress.stake_cred();
     const stakeKeyHash     = stakeKeyHashCred.to_keyhash();
-    
+
     const plc_lst = CardanoWasm.PlutusList.new();
     const tag1 = CardanoWasm.PlutusData.new_bytes(toUTF8Array("ENCOINS"));
     const tag2 = CardanoWasm.PlutusData.new_bytes(toUTF8Array("Poll #" + n));
@@ -427,17 +437,27 @@ async function daoPollVoteTx(n, walletName, answer)
     plc_lst.add(tag4);
     const plc_msg = CardanoWasm.PlutusData.new_list(plc_lst);
 
+
     const tx = await lucid.newTx()
       .addSignerKey(toHexString(stakeKeyHash.to_bytes()))
       .payToAddressWithData(changeAddress.to_bech32(), { inline: toHexString(plc_msg.to_bytes()) }, { lovelace: 1500000n })
       .complete();
 
+    setInputValue("VoteSignTx", tx);
+
     const signedTx = await tx.sign().complete();
 
+    setInputValue("VoteSubmitTx", signedTx);
+
     const txHash = await signedTx.submit();
+
     console.log(txHash);
+    setInputValue("VoteSubmittedTx", signedTx);
 
     setInputValue("elementPoll" + n, "Thank you for voting! Come back later to see the results.");
+
+    // Check wallets's utxos are changed and then send VoteReadyTx
+    await check_utxos_changed( "VoteReadyTx", api, utxos, { wait: 1000, retries: 20 })
 
     changeAddress.free();
     baseAddress.free();
@@ -452,6 +472,110 @@ async function daoPollVoteTx(n, walletName, answer)
     plc_msg.free();
   } catch (e) {
     console.log("Error: " + e.message);
+    setInputValue("VoteError", e.message);
     return;
   }
 };
+
+async function daoDelegateTx(apiKey, net, walletName, url)
+{
+  setInputValue("DelegateCreateNewTx", "")
+  // loading CardanoWasm
+  await loader.load();
+  const CardanoWasm = loader.Cardano;
+
+  const blockfrostAddress = ["https://cardano-", net.toLowerCase(), ".blockfrost.io/api/v0"].join('');
+  await lucidLoader.load();
+  const lucid = await lucidLoader.Lucid.new(
+    // TODO: check url below
+    new lucidLoader.Blockfrost(blockfrostAddress, apiKey),
+    net,
+  )
+
+  try {
+    //loading wallet
+    const api = await walletAPI(walletName);
+    lucid.selectWallet(api);
+
+
+    const changeAddress    = CardanoWasm.Address.from_bytes(fromHexString(await api.getChangeAddress()));
+    const baseAddress      = CardanoWasm.BaseAddress.from_address(changeAddress);
+    const stakeKeyHashCred = baseAddress.stake_cred();
+    const stakeKeyHash     = stakeKeyHashCred.to_keyhash();
+    const utxos            = await api.getUtxos();
+
+    const plc_lst = CardanoWasm.PlutusList.new();
+    const tag1 = CardanoWasm.PlutusData.new_bytes(toUTF8Array("ENCOINS"));
+    const tag2 = CardanoWasm.PlutusData.new_bytes(toUTF8Array("Delegate"));
+    const tag3 = CardanoWasm.PlutusData.new_bytes(stakeKeyHash.to_bytes());
+    const tag4 = CardanoWasm.PlutusData.new_bytes(toUTF8Array(url));
+    plc_lst.add(tag1);
+    plc_lst.add(tag2);
+    plc_lst.add(tag3);
+    plc_lst.add(tag4);
+    const plc_msg = CardanoWasm.PlutusData.new_list(plc_lst);
+
+
+    const tx = await lucid.newTx()
+      .addSignerKey(toHexString(stakeKeyHash.to_bytes()))
+      .payToAddressWithData(changeAddress.to_bech32(), { inline: toHexString(plc_msg.to_bytes()) }, { lovelace: 1500000n })
+      .complete();
+
+    setInputValue("DelegateSignTx", tx)
+
+    const signedTx = await tx.sign().complete();
+
+    setInputValue("DelegateSubmitTx", signedTx);
+
+    const txHash = await signedTx.submit();
+
+    setInputValue("DelegateSubmittedTx", txHash);
+
+    // Check wallets's utxos are changed and then send DelegateReadyTx
+    await check_utxos_changed( "DelegateReadyTx", api, utxos, { wait: 1000, retries: 20 })
+
+    changeAddress.free();
+    baseAddress.free();
+    stakeKeyHashCred.free();
+    stakeKeyHash.free();
+
+    plc_lst.free();
+    tag1.free();
+    tag2.free();
+    tag3.free();
+    tag4.free();
+    plc_msg.free();
+  } catch (e) {
+    console.log("Error: " + e.message);
+    setInputValue("DelegateError", e.message);
+    return;
+  }
+};
+
+const regex = new RegExp('^(?:(?:https?):\\\/\\\/)(?:\\S+(?::\\S*)?@)?(?:(?!(?:10|127)(?:\\.\\d{1,3}){3})(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z0-9\\u00a1-\\uffff][a-z0-9\\u00a1-\\uffff_-]{0,62})?[a-z0-9\\u00a1-\\uffff]\\.)+(?:[a-z\\u00a1-\\uffff]{2,}\\.?))(?::\\d{2,5})?(?:[\/?#]\\S*)?$', 'i');
+
+async function checkUrl(str) {
+  const isUrl = regex.test(str)
+  if (isUrl)
+  {
+    setInputValue("ValidUrl", str);
+    return;
+  } else
+  setInputValue("InvalidUrl", str);
+  return;
+};
+
+async function check_utxos_changed (elementId, api, utxosOld, { wait, retries }) {
+  await setTimeout(wait)
+  const utxosNew = await api.getUtxos();
+
+  if (utxosOld !== utxosNew) {
+    console.log("The utxos of the wallet have been changed")
+    return setInputValue(elementId, "");
+  }
+
+  if (retries)
+  return check_utxos_changed(elementId, api, utxosOld, {wait, retries: --retries })
+
+  throw new Error('Retry attempts exhausted')
+}
