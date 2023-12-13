@@ -67,6 +67,7 @@ function loadJSON(key, resId, decr, pass) {
 
 function setWalletNone() {
   setInputValue("walletNameElement", "None");
+  setInputValue("daoWalletNameNotConnected", "None");
   setInputValue("changeAddressBech32Element", "");
   setInputValue("pubKeyHashElement", "");
   setInputValue("stakeKeyHashElement", "");
@@ -159,6 +160,7 @@ async function walletLoad(walletName)
     const api = await walletAPI(walletName);
 
     setInputValue("walletNameElement", walletName);
+    setInputValue("daoWalletNameNotConnected", walletName);
 
     const networkId           = await api.getNetworkId();
     setInputValue("networkIdElement", networkId);
@@ -305,7 +307,7 @@ function setElementStyle(elId, prop, val) {
 
 function pingServer(baseUrl) {
   const request = new XMLHttpRequest();
-  request.open('GET', baseUrl + '/ping', false);  // `false` makes the request synchronous
+  request.open('GET', baseUrl + 'ping', false);  // `false` makes the request synchronous
   try {
     request.send(null);
   } catch(e) {
@@ -403,9 +405,7 @@ function toUTF8Array(str) {
   return utf8;
 }
 
-async function daoPollVoteTx(n, apiKey, net, walletName, answer)
-{
-  setInputValue("VoteCreateNewTx", "");
+async function daoPollVoteTx(n, apiKey, net, walletName, answer, policyId, assetName) {
   // loading CardanoWasm
   await loader.load();
   const CardanoWasm = loader.Cardano;
@@ -414,7 +414,7 @@ async function daoPollVoteTx(n, apiKey, net, walletName, answer)
   const lucid = await lucidLoader.Lucid.new(
     new lucidLoader.Blockfrost(blockfrostAddress, apiKey),
     net,
-  )
+    );
 
   try {
     //loading wallet
@@ -425,6 +425,7 @@ async function daoPollVoteTx(n, apiKey, net, walletName, answer)
     const baseAddress      = CardanoWasm.BaseAddress.from_address(changeAddress);
     const stakeKeyHashCred = baseAddress.stake_cred();
     const stakeKeyHash     = stakeKeyHashCred.to_keyhash();
+    const utxos            = await api.getUtxos();
 
     const plc_lst = CardanoWasm.PlutusList.new();
     const tag1 = CardanoWasm.PlutusData.new_bytes(toUTF8Array("ENCOINS"));
@@ -437,10 +438,14 @@ async function daoPollVoteTx(n, apiKey, net, walletName, answer)
     plc_lst.add(tag4);
     const plc_msg = CardanoWasm.PlutusData.new_list(plc_lst);
 
+    setInputValue("VoteCreateNewTx", "");
 
     const tx = await lucid.newTx()
       .addSignerKey(toHexString(stakeKeyHash.to_bytes()))
-      .payToAddressWithData(changeAddress.to_bech32(), { inline: toHexString(plc_msg.to_bytes()) }, { lovelace: 1500000n })
+      .payToAddressWithData(changeAddress.to_bech32(),
+        { inline: toHexString(plc_msg.to_bytes()) },
+        { lovelace: 1500000n, [policyId + assetName]: 1n }
+      )
       .complete();
 
     setInputValue("VoteSignTx", tx);
@@ -471,15 +476,13 @@ async function daoPollVoteTx(n, apiKey, net, walletName, answer)
     tag4.free();
     plc_msg.free();
   } catch (e) {
-    console.log("Error: " + e.message);
-    setInputValue("VoteError", e.message);
+    console.log("Error: " + e.info);
+    setInputValue("VoteError", e.info);
     return;
   }
 };
 
-async function daoDelegateTx(apiKey, net, walletName, url)
-{
-  setInputValue("DelegateCreateNewTx", "")
+async function daoDelegateTx(apiKey, net, walletName, url, policyId, assetName) {
   // loading CardanoWasm
   await loader.load();
   const CardanoWasm = loader.Cardano;
@@ -490,7 +493,7 @@ async function daoDelegateTx(apiKey, net, walletName, url)
     // TODO: check url below
     new lucidLoader.Blockfrost(blockfrostAddress, apiKey),
     net,
-  )
+    );
 
   try {
     //loading wallet
@@ -515,10 +518,14 @@ async function daoDelegateTx(apiKey, net, walletName, url)
     plc_lst.add(tag4);
     const plc_msg = CardanoWasm.PlutusData.new_list(plc_lst);
 
+    setInputValue("DelegateCreateNewTx", "");
 
     const tx = await lucid.newTx()
       .addSignerKey(toHexString(stakeKeyHash.to_bytes()))
-      .payToAddressWithData(changeAddress.to_bech32(), { inline: toHexString(plc_msg.to_bytes()) }, { lovelace: 1500000n })
+      .payToAddressWithData(changeAddress.to_bech32(),
+        { inline: toHexString(plc_msg.to_bytes()) },
+        { lovelace: 1500000n, [policyId + assetName]: 1n }
+      )
       .complete();
 
     setInputValue("DelegateSignTx", tx)
@@ -531,8 +538,8 @@ async function daoDelegateTx(apiKey, net, walletName, url)
 
     setInputValue("DelegateSubmittedTx", txHash);
 
-    // Check wallets's utxos are changed and then send DelegateReadyTx
-    await check_utxos_changed( "DelegateReadyTx", api, utxos, { wait: 1000, retries: 20 })
+    // Check wallets's utxos are changed and then send DelegateSuccessTx
+    await check_utxos_changed("DelegateSuccessTx", api, utxos, { wait: 1000, retries: 20 })
 
     changeAddress.free();
     baseAddress.free();
@@ -545,24 +552,12 @@ async function daoDelegateTx(apiKey, net, walletName, url)
     tag3.free();
     tag4.free();
     plc_msg.free();
+    setInputValue("DelegateReadyTx", "");
   } catch (e) {
-    console.log("Error: " + e.message);
-    setInputValue("DelegateError", e.message);
+    setInputValue("DelegateError", e.info);
+    console.log("Error: " + e.info);
     return;
   }
-};
-
-const regex = new RegExp('^(?:(?:https?):\\\/\\\/)(?:\\S+(?::\\S*)?@)?(?:(?!(?:10|127)(?:\\.\\d{1,3}){3})(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z0-9\\u00a1-\\uffff][a-z0-9\\u00a1-\\uffff_-]{0,62})?[a-z0-9\\u00a1-\\uffff]\\.)+(?:[a-z\\u00a1-\\uffff]{2,}\\.?))(?::\\d{2,5})?(?:[\/?#]\\S*)?$', 'i');
-
-async function checkUrl(str) {
-  const isUrl = regex.test(str)
-  if (isUrl)
-  {
-    setInputValue("ValidUrl", str);
-    return;
-  } else
-  setInputValue("InvalidUrl", str);
-  return;
 };
 
 async function check_utxos_changed (elementId, api, utxosOld, { wait, retries }) {
