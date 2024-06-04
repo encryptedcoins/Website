@@ -56,10 +56,8 @@ body {
 }
 
 .menu-selector {
-  width: 25px;
-  height: 4px;
+  height: 1px;
   border: 1px solid #000;
-  border-radius: 29px;
   background-color: #fff;
 }
 
@@ -792,6 +790,16 @@ body {
   letter-spacing: 0.05em;
 }
 
+.app-text-title {
+  font-family: Poppins, sans-serif;
+  font-size: 22px;
+  line-height: 32px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+}
+
 .app-text-semibold.ada-value-text {
   width: 130px;
   text-align: right;
@@ -840,7 +848,6 @@ body {
 
 .coin-entry-burn-div:hover {
   background: rgb(50 50 50);
-  cursor: pointer;
 }
 
 .coin-entry-mint-div {
@@ -862,7 +869,6 @@ body {
 
 .coin-entry-mint-div:hover {
   background: rgb(50 50 50);
-  cursor: pointer;
 }
 
 .checkbox-div {
@@ -918,6 +924,10 @@ body {
   cursor: pointer;
 }
 
+.cross-div:hover {
+  transform: scale(1.1);
+}
+
 .coin-new-div {
   display: -webkit-box;
   display: -webkit-flex;
@@ -945,6 +955,12 @@ body {
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
   cursor: pointer;
+}
+
+.plus-div:hover {
+  -webkit-transform: rotate(45deg) scale(1.1);
+  -ms-transform: rotate(45deg) scale(1.1);
+  transform: rotate(45deg) scale(1.1);
 }
 
 .coin-new-input {
@@ -1001,6 +1017,7 @@ body {
 }
 
 .dialog-window-title {
+  font-size: 24px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -1059,6 +1076,20 @@ body {
   grid-row-gap: 100px;
 }
 
+.common-ConnectWindow {
+  min-width: 400px;
+  min-height: 150px;
+  padding-left: min(5%, 30px);
+  padding-right: min(5%, 30px);
+  padding-top: min(5%, 30px);
+  padding-bottom: min(5%, 30px);
+}
+
+.common-Connect_WalletContainer {
+  display: flex;
+  flex-direction: column;
+}
+
 .connect-wallet-div {
   display: -webkit-box;
   display: -webkit-flex;
@@ -1073,10 +1104,16 @@ body {
   font-size: 18px;
   line-height: 32px;
   cursor: pointer;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  border-radius: 5px;
 }
 
 .connect-wallet-div:hover {
-  color: #000;
+  background-color: #000;
+  color: #fff;
 }
 
 .div-tooltip {
@@ -1089,6 +1126,7 @@ body {
   -webkit-filter: brightness(75%);
   filter: brightness(75%);
   color: #000;
+  transition: all 1s ease;
 }
 
 .div-tooltip.top-right {
@@ -1119,20 +1157,22 @@ body {
 
 .copy-div {
   display: inline-block;
-  width: 35px;
+  width: 20px;
   height: 20px;
-  margin: 3px;
   background-image: url('../images/copy.svg');
   background-position: 50% 50%;
   background-size: 20px;
   background-repeat: no-repeat;
 }
 
+.copy-div:hover {
+  transform: scale(1.1);
+}
+
 .tick-div {
   display: inline-block;
-  width: 35px;
+  width: 20px;
   height: 20px;
-  margin: 3px;
   background-image: url('../images/Tick.svg');
   background-position: 50% 50%;
   background-size: 20px;
@@ -1452,10 +1492,6 @@ body {
 
   .menu-item-button-left {
     margin-left: 0px;
-    -webkit-align-self: stretch;
-    -ms-flex-item-align: stretch;
-    -ms-grid-row-align: stretch;
-    align-self: stretch;
     -webkit-box-flex: 1;
     -webkit-flex: 1;
     -ms-flex: 1;
@@ -1580,62 +1616,6 @@ body {
   filter: brightness(35%);
   cursor: default;
   pointer-events: none;
-}
-
-.app-Nav_LockerContainer {
-  margin-left: 10px;
-  -webkit-align-self: center;
-  -ms-flex-item-align: center;
-  -ms-grid-row-align: center;
-  align-self: center;
-}
-
-.app-Nav_Locker-close {
-  width: 22px;
-  min-width: 22px;
-  height: 31px;
-  max-height: 31px;
-  background-image: url('../images/locked.svg');
-  background-position: 0px 0px;
-  background-size: auto;
-  margin-top: 10px;
-  margin-bottom: 40px;
-}
-
-.app-Nav_Locker-close:hover {
-  background-image: url('../images/locked-active.svg');
-  cursor: pointer;
-}
-
-@media screen and (min-width: 767px) {
-  .app-Nav_Locker-close {
-    margin-top: 0px;
-    margin-bottom: 0px;
-  }
-}
-
-.app-Nav_Locker-open {
-  width: 29px;
-  min-width: 29px;
-  height: 31px;
-  max-height: 31px;
-  background-image: url('../images/unlocked.svg');
-  background-position: 0px 0px;
-  background-size: auto;
-  margin-top: 10px;
-  margin-bottom: 40px;
-}
-
-.app-Nav_Locker-open:hover {
-  background-image: url('../images/unlocked-active.svg');
-  cursor: pointer;
-}
-
-@media screen and (min-width: 767px) {
-  .app-Nav_Locker-open {
-    margin-top: 0px;
-    margin-bottom: 0px;
-  }
 }
 
 .app-Nav_CachePopup {
@@ -1844,8 +1824,48 @@ body {
   margin-bottom: 20px;
 }
 
-.app-Formula_InfoIcon {
+.app-Spoiler_AssetInfo-down {
   cursor: pointer;
+  padding-left: 10px;
+}
+
+.app-Spoiler_AssetInfo-down:hover {
+  cursor: pointer;
+  padding-left: 10px;
+  transform: scale(1.1);
+}
+
+.app-Spoiler_AssetInfo-up {
+  cursor: pointer;
+  padding-right: 10px;
+  rotate: 180deg;
+}
+
+.app-Spoiler_AssetInfo-up:hover {
+  cursor: pointer;
+  padding-right: 10px;
+  rotate: 180deg;
+  transform: scale(1.1);
+}
+
+.app-Spoiler_Formula-down {
+  cursor: pointer;
+}
+
+.app-Spoiler_Formula-down:hover {
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+.app-Spoiler_Formula-up {
+  cursor: pointer;
+  rotate: 180deg;
+}
+
+.app-Spoiler_Formula-up:hover {
+  cursor: pointer;
+  rotate: 180deg;
+  transform: scale(1.1);
 }
 
 .app-Formula_TooltipWrapper {
@@ -1900,7 +1920,6 @@ body {
   letter-spacing: 0.01em;
 }
 
-
 .app-WelcomeBody_ButtonOkContainer {
   display: flex;
   flex-direction: column;
@@ -1919,66 +1938,130 @@ body {
   }
 }
 
-.app-Save_IconSaving {
-  background-image: url('../images/cloud_yellow.svg');
-}
-
-.app-Save_IconAllSaved {
-  background-image: url('../images/cloud_green.svg');
-}
-
-.app-Save_IconAttemptExcess {
-  background-image: url('../images/cloud_red.svg');
-}
-
-.app-Save_IconTurnOff {
-  background-image: url('../images/cloud_blank.svg');
-}
-
-.app-Save_IconContainer {
-  height: 31px;
-  max-height: 31px;
-  width: 27px;
-  min-width: 27px;
-  margin-left: 10px;
+.app-Nav_LockerContainer {
+  margin-left: 15px;
+  margin-top: 10px;
+  -webkit-align-self: center;
+  -ms-flex-item-align: center;
+  -ms-grid-row-align: center;
   align-self: center;
   background-position: 0px 0px;
   background-size: auto;
-  margin-bottom: 40px;
+  background-repeat: no-repeat;
 }
 
-@media screen and (min-width: 767px) {
-  .app-Save_IconContainer {
-    margin-bottom: 0px;
-    margin-top: 10px;
-  }
+.app-Nav_Locker-close {
+  width: 22px;
+  height: 30px;
+  background-image: url('../images/locked.svg');
 }
 
-.app-Save_IconContainer:hover {
+.app-Nav_Locker-close:hover {
+  background-image: url('../images/locked-active.svg');
   cursor: pointer;
 }
 
-.app-Save_IconContainer:hover .app-Nav_SavePopup {
-  display: inline-block;
+.app-Nav_Locker-open {
+  width: 30px;
+  height: 30px;
+  background-image: url('../images/unlocked.svg');
 }
 
-.app-Nav_SavePopup {
-  display: flex;
-  top: auto;
-  right: 83px;
+.app-Nav_Locker-open:hover {
+  background-image: url('../images/unlocked-active.svg');
+  cursor: pointer;
+}
+
+
+.app-Cloud_IconContainer {
+  margin-left: 15px;
   margin-top: 10px;
-  padding-top: 30px;
-  position: relative;
-  font-weight: 400;
-  white-space: nowrap;
+  -webkit-align-self: center;
+  -ms-flex-item-align: center;
+  -ms-grid-row-align: center;
+  align-self: center;
 }
 
-@media screen and (min-width: 767px) {
-  .app-Nav_SavePopup {
-    display: none;
-    top: 50px;
-    position: absolute;
-  }
+.app-Cloud_IconContainer:hover {
+  cursor: pointer;
+}
+
+.app-Cloud_IconSaving {
+  background-image: url('../images/cloud-sync-yellow.svg');
+  background-position: 0px 0px;
+  background-size: auto;
+  background-repeat: no-repeat;
+  height: 30px;
+  width: 40px;
+}
+
+.app-Cloud_IconSaving:hover {
+  background-image: url('../images/cloud-sync-yellow-fill.svg');
+}
+
+.app-Cloud_IconAllSaved {
+  background-image: url('../images/cloud-sync-green.svg');
+  background-position: 0px 0px;
+  background-size: auto;
+  background-repeat: no-repeat;
+  height: 30px;
+  width: 40px;
+}
+
+.app-Cloud_IconAllSaved:hover {
+  background-image: url('../images/cloud-sync-green-fill.svg');
+}
+
+.app-Cloud_IconAttemptExcess {
+  background-image: url('../images/cloud-sync-red.svg');
+  background-position: 0px 0px;
+  background-size: auto;
+  background-repeat: no-repeat;
+  height: 30px;
+  width: 40px;
+}
+
+.app-Cloud_IconAttemptExcess:hover {
+  background-image: url('../images/cloud-sync-red-fill.svg');
+}
+
+.app-Cloud_IconTurnOff {
+  background-image: url('../images/cloud-sync-white.svg');
+  background-position: 0px 0px;
+  background-size: auto;
+  background-repeat: no-repeat;
+  height: 30px;
+  width: 40px;
+}
+
+.app-Cloud_IconTurnOff:hover {
+  background-image: url('../images/cloud-sync-white-fill.svg');
+}
+
+.common-Nav_Container_MoreMenu {
+  margin-left: 17px;
+  margin-top: 10px;
+  -webkit-align-self: center;
+  -ms-flex-item-align: center;
+  -ms-grid-row-align: center;
+  align-self: center;
+}
+
+.common-Nav_Container_MoreMenu:hover {
+  cursor: pointer;
+}
+
+.common-Nav_MoreMenu {
+  background-image: url('../images/more-h-white.svg');
+  background-position: 0px 0px;
+  background-size: auto;
+  background-repeat: no-repeat;
+  width: 9px;
+  height: 30px;
+}
+
+.common-Nav_MoreMenu:hover {
+  background-image: url('../images/more-h-white-fill.svg');
 }
 
 .app-Cloud_CheckboxContainer {
@@ -2030,7 +2113,7 @@ body {
   height: 30px;
   background-color: #fff;
   border: 1px solid #6a6a6a;
-  border-radius: 10px;
+  border-radius: 5px;
   box-shadow: inset -20px 0 0 0 #6a6a6a;
 }
 
@@ -2045,7 +2128,8 @@ body {
   background: transparent;
   width: 26px;
   height: 26px;
-  border-radius: 30%;
+  -webkit-transition: left .4s;
+  transition: left .4s;
 }
 
 .app-Cloud_CheckboxToggle:checked {
@@ -2064,39 +2148,190 @@ body {
 
 .app-Cloud_Window {
   min-width: 750px;
-  height: 20%;
   min-height: 470px;
-  padding-left: min(5%, 70px);
-  padding-right: min(5%, 70px);
+  padding-left: min(5%, 50px);
+  padding-right: min(5%, 50px);
   padding-top: min(5%, 30px);
   padding-bottom: min(5%, 30px);
 }
 
 .app-ImportWindow {
-  width: 90%;
-  min-width: 470px;
-  padding-left: min(5%, 70px);
-  padding-right: min(5%, 70px);
+  min-width: none;
+  padding-left: min(5%, 40px);
+  padding-right: min(5%, 40px);
   padding-top: min(5%, 30px);
   padding-bottom: min(5%, 30px);
 }
 
-.app-ImportFileWindow {
-  width: 90%;
-  min-width: 470px;
-  padding-left: min(5%, 70px);
-  padding-right: min(5%, 70px);
-  padding-top: min(5%, 30px);
-  padding-bottom: min(5%, 30px);
+@media screen and (min-width: 700px) {
+  .app-ImportWindow {
+    min-width: 700px;
+  }
 }
+
+.app-ImportWindow_Container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Import key section */
+
+.app-ImportKey_Container {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-ImportKey_Container_InputAndButton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+@media screen and (min-width: 700px) {
+  .app-ImportKey_Container_InputAndButton {
+    flex-direction: row;
+  }
+}
+
+.app-ImportKey_ButtonContainer {
+  display: flex;
+  justify-content: center;
+  height: 38px;
+}
+
+.app-ImportKey_Input {
+  display: block;
+  width: min(90%, 788px);
+  height: 38px;
+  padding-right: 10px;
+  padding-left: 10px;
+  background-color: #ffffff;
+  color: #000;
+  border: 1px solid #cccccc;
+  font-weight: 600;
+  font-family: Poppins, sans-serif;
+  font-size: 18px;
+  line-height: 34px;
+  box-sizing: content-box;
+}
+
+.app-ImportKey_Input:focus {
+  border-color: #3898EC;
+  outline: 0;
+}
+
+/* Import file section */
+
+.app-ImportFile_Container {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-ImportFile_Container_InputAndButton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+@media screen and (min-width: 700px) {
+  .app-ImportFile_Container_InputAndButton {
+    flex-direction: row;
+  }
+}
+
+.app-ImportFile_Input {
+  display: block;
+  width: min(90%, 788px);
+  height: 38px;
+  padding-right: 10px;
+  padding-left: 10px;
+  background-color: #ffffff;
+  color: #000;
+  border: 1px solid #cccccc;
+  font-weight: 600;
+  font-family: Poppins, sans-serif;
+  font-size: 18px;
+  line-height: 34px;
+  box-sizing: content-box;
+}
+
+.app-ImportFile_Input:focus {
+  border-color: #3898EC;
+  outline: 0;
+}
+
+.app-ImportFile_ButtonContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-ImportFile_Button {
+  height: 38px;
+  width: 210px;
+}
+
+@media screen and (min-width: 700px) {
+  .app-ImportFile_Button {
+    width: none;
+  }
+}
+
+/* Export coins section */
 
 .app-ExportWindow {
-  width: 90%;
-  min-width: 470px;
-  padding-left: min(5%, 70px);
-  padding-right: min(5%, 70px);
+  min-width: none;
+  padding-left: min(5%, 50px);
+  padding-right: min(5%, 50px);
   padding-top: min(5%, 30px);
   padding-bottom: min(5%, 30px);
+}
+
+
+@media screen and (min-width: 700px) {
+  .app-ExportWindow {
+    min-width: 700px;
+  }
+}
+
+.app-ExportWindow_ButtonContainer {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+@media screen and (min-width: 700px) {
+  .app-ExportWindow_ButtonContainer {
+    display: flex;
+    flex-direction: row;
+  }
+}
+
+.app-ExportSelected_Button {
+  height: 38px;
+  width: 210px;
+  white-space: nowrap;
+}
+
+@media screen and (min-width: 700px) {
+  .app-ExportSelected_Button {
+    width: none;
+  }
+}
+
+.app-ExportAll_Button {
+  height: 38px;
+  width: 210px;
+}
+
+@media screen and (min-width: 700px) {
+  .app-ExportAll_Button {
+    width: none;
+  }
 }
 
 .app-InputAddressWindow {
@@ -2233,6 +2468,147 @@ body {
 }
 
 .app-PasswordProtect_Window {
-  display:flex;
+  display: flex;
   flex-direction: column;
+}
+
+.app-Input_Password {
+  display: inline-block;
+  width: 100%;
+  height: 38px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #333333;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  vertical-align: -webkit-baseline-middle;
+}
+
+.app-Input_Password:focus {
+  border-color: #3898EC;
+  outline: 0;
+}
+
+.app-Eye_Input {
+  cursor: pointer;
+  margin-left: -30px;
+}
+
+.app-CoinBurn_IconKey {
+  width: 22px;
+}
+
+.app-CoinBurn_IconKey:hover {
+  transform: scale(1.1);
+}
+
+.app-Cloud_IconPopup {
+  width: 20px;
+}
+
+.app-Cloud_IconPopup:hover {
+  transform: scale(1.1);
+}
+
+.app-Tooltip_TokenNameContainer {
+  gap: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.app-Tooltip_TokenName-copy {
+  width: 20px;
+}
+
+.app-Tooltip_AssetContainer {
+  gap: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.app-Tooltip_Asset-copy {
+  width: 20px;
+}
+
+.common-MoreMenu_Window {
+  min-width: 400px;
+  min-height: 150px;
+  padding-left: min(5%, 30px);
+  padding-right: min(5%, 30px);
+  padding-top: min(5%, 30px);
+  padding-bottom: min(5%, 30px);
+}
+
+.common-MoreMenu_LinkContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.common-MoreMenu_Link {
+  font-family: Poppins, sans-serif;
+  font-size: 18px;
+  color: #000;
+  line-height: 27px;
+  letter-spacing: 0.02em;
+  padding-left: 20px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  border-radius: 5px;
+}
+
+.common-MoreMenu_Link:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+.common-Connect_Button {
+  width: 250px;
+  white-space: nowrap;
+}
+
+.app-PasswordWindow_Notification {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  font-family: Poppins, sans-serif;
+  font-size: 18px;
+}
+
+.app-ImportWindow_SubTitle {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  align-items: center;
+  font-family: Poppins, sans-serif;
+  font-size: 18px;
+  line-height: 32px;
+}
+
+.main-DexHunter_Container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 50px;
+}
+
+.main-Version {
+  display: inline;
+}
+
+.main-Footer_VersionContainer {
+  align-items: center;
+  justify-content: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  padding-bottom: 30px;
+}
+
+.main-Footer_VersionText {
+  font-family: Poppins, sans-serif;
+  font-size: 20px;
 }
